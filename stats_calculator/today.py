@@ -1,23 +1,19 @@
 import sys
-
-from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QApplication,
-    QLabel,
     QMainWindow,
-    QPushButton,
-    QTabWidget,
     QWidget,
+    QLabel,
     QLineEdit,
     QHBoxLayout,
     QVBoxLayout,
 )
+from PyQt6.QtCore import QSize
 
-from layout_colorwidget import Color
-
-class NormalCDFTab(QWidget):
+class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
+        self.setWindowTitle('Statistics Calculator')
 
         self.label1 = QLabel('Label 1:')
         self.label2 = QLabel('Label 2:')
@@ -39,28 +35,8 @@ class NormalCDFTab(QWidget):
 
         self.setLayout(v_layout)
 
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-
-        self.setWindowTitle("Statistics Calculator")
-
-        tabs = QTabWidget()
-        # tabs.setTabPosition(QTabWidget.TabPosition.West)
-        # tabs.setMovable(True)
-
-        
-        tabs.addTab(NormalCDFTab(), 'NormalCDF')
-        
-        for n, color in enumerate(["red", "green", "blue", "yellow"]):
-            tabs.addTab(Color(color), color)
-
-        self.setCentralWidget(tabs)
-
-
-app = QApplication(sys.argv)
-
-window = MainWindow()
-window.show()
-
-app.exec()
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())
