@@ -1,6 +1,6 @@
 import sys
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtWidgets import (
     QApplication,
     QLabel,
@@ -11,6 +11,8 @@ from PyQt6.QtWidgets import (
     QLineEdit,
     QHBoxLayout,
     QVBoxLayout,
+    QSizePolicy,
+    QLayout
 )
 
 from layout_colorwidget import Color
@@ -25,6 +27,15 @@ class NormalCDFTab(QWidget):
         self.textbox1 = QLineEdit()
         self.textbox2 = QLineEdit()
 
+        # self.textbox1.setSizePolicy(
+        #     QSizePolicy.Policy.Fixed,
+        #     QSizePolicy.Policy.Fixed,
+        # )
+        # self.textbox2.setSizePolicy(
+        #     QSizePolicy.Policy.Fixed,
+        #     QSizePolicy.Policy.Fixed,
+        # )
+
         h_layout1 = QHBoxLayout()
         h_layout1.addWidget(self.label1)
         h_layout1.addWidget(self.textbox1)
@@ -36,6 +47,8 @@ class NormalCDFTab(QWidget):
         v_layout = QVBoxLayout()
         v_layout.addLayout(h_layout1)
         v_layout.addLayout(h_layout2)
+
+        v_layout.setSizeConstraint(QVBoxLayout.SizeConstraint.SetFixedSize)
 
         self.setLayout(v_layout)
 
