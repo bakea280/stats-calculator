@@ -14,6 +14,8 @@ from PyQt6.QtWidgets import (
     QSizePolicy,
     QLayout
 )
+import numpy as np
+from scipy.stats import norm
 
 class LabeledTextbox(QWidget):
     def __init__(self, label_text, call_on_edit=False):
@@ -38,8 +40,8 @@ class NormalCDF(QWidget):
 
         self.mean = 0
         self.stddev = 1
-        self.lowerbound = -1*10**10
-        self.upperbound = 1*10**10
+        self.lowerbound = -1 #-1*10**10
+        self.upperbound = 1 #1*10**10
         self.p = None
 
         mean_box = LabeledTextbox('mean:', self.mean_changed)
@@ -63,6 +65,14 @@ class NormalCDF(QWidget):
         print(mean, stddev)
         print(lower)
         print(upper)
+        try:
+            lower_cdf = norm.cdf(lower, mean, stddev)
+            upper_cdf = norm.cdf(upper, mean, stddev)
+            self.p = upper_cdf - lower_cdf
+            self.p_label.setText(str(self.p))
+        except Exception as e:
+            print('ERROR IN calculate_p', type(e), e)
+
     
     def mean_changed(self, text):
         print(f'mean edited to:  {text}')
