@@ -36,19 +36,44 @@ class NormalCDF(QWidget):
     def __init__(self):
         super().__init__()
 
-        mean_box = LabeledTextbox('mean: ', self.mean_changed)
-        
+        self.mean = 0
+        self.stddev = 1
+        self.lowerbound = -1*10**10
+        self.upperbound = 1*10**10
+        self.p = None
+
+        mean_box = LabeledTextbox('mean:', self.mean_changed)
+        stddev_box = LabeledTextbox('standard deviation:', self.stddev_changed)
+        self.p_label = QLabel('?')
+
         layout = QVBoxLayout()
-        test = QLabel('bruhh')
-        test2 = QLabel('ok')
-        layout.addWidget(test)
+
         layout.addWidget(mean_box)
-        layout.addWidget(test2)
+        layout.addWidget(stddev_box)
+        layout.addWidget(self.p_label)
+
+        # test = QLabel('bruhh')
+        # test2 = QLabel('ok')
+        # layout.addWidget(test)
+        # layout.addWidget(test2)
 
         self.setLayout(layout)
     
+    def calculate_p(self, mean, stddev, lower, upper):
+        print(mean, stddev)
+        print(lower)
+        print(upper)
+    
     def mean_changed(self, text):
-        print(f'text edited to: {text}')
+        print(f'mean edited to:  {text}')
+        try:
+            self.mean = float(text)
+            self.calculate_p(self.mean, self.stddev, self.lowerbound, self.upperbound)
+        except:
+            self.p = None
+
+    def stddev_changed(self, text):
+        print(f'stddev edited to: {text}')
     
 app = QApplication(sys.argv)
 
