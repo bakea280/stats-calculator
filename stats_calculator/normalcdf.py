@@ -107,6 +107,7 @@ class NormalCDF(QWidget):
     
         self.calculate_p(self.mean, self.stddev, self.lowerbound, self.upperbound)
     
+
     def set_p(self, value):
         self.p = value
         self.p_label.setText(f'p = {value}')
@@ -124,7 +125,7 @@ class NormalCDF(QWidget):
             
             self.set_p(upper_cdf - lower_cdf)
         except Exception as e:
-            print('ERROR IN calculate_p', type(e), e)
+            # print('ERROR IN calculate_p', type(e), e)
             self.set_p('?')
 
 if __name__ == '__main__': 
