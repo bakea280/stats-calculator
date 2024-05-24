@@ -19,6 +19,7 @@ from PyQt6.QtCore import QRegularExpression
 
 import numpy as np
 from scipy.stats import norm
+import pyqtgraph as pg
 
 class LabeledTextbox(QWidget):
     def __init__(self, label_text, call_on_edit=None, placeholder_text=None, regex_filter=None):
@@ -41,6 +42,21 @@ class LabeledTextbox(QWidget):
         layout = QHBoxLayout()
         layout.addWidget(self.label)
         layout.addWidget(self.textbox)
+        self.setLayout(layout)
+
+class NormalGraph(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.normal_graph = pg.PlotWidget()
+        self.pen = pg.mkPen(width=5)
+        mean, stddev = 0, 1
+        resolution = 100
+        x = np.linspace(mean - stddev*3, mean + stddev*3, resolution)
+        self.normal_graph.plot(x, norm.pdf(x), pen=self.pen)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.normal_graph)
         self.setLayout(layout)
 
 class NormalCDF(QWidget):
@@ -66,13 +82,22 @@ class NormalCDF(QWidget):
         upperbound_box = LabeledTextbox('upper bound:', self.upperbound_changed, '∞', equation_regex)
         self.p_label = QLabel(f'p = {self.p}')
 
-        layout = QVBoxLayout()
-        layout.addWidget(mean_box)
-        layout.addWidget(stddev_box)
-        layout.addWidget(lowerbound_box)
-        layout.addWidget(upperbound_box)
-        layout.addWidget(self.p_label)
+        graph = NormalGraph()
 
+        layout = QHBoxLayout()
+
+        layoutL = QVBoxLayout()
+        layoutL.addWidget(mean_box)
+        layoutL.addWidget(stddev_box)
+        layoutL.addWidget(lowerbound_box)
+        layoutL.addWidget(upperbound_box)
+        layoutL.addWidget(self.p_label)
+
+        layoutR = QVBoxLayout()
+        layoutR.addWidget(graph)
+
+        layout.addLayout(layoutL)
+        layout.addLayout(layoutR)
         self.setLayout(layout)
     
     def mean_changed(self, text):
@@ -81,7 +106,7 @@ class NormalCDF(QWidget):
         else:
             self.mean = text
         
-        self.calculate_p(self.mean, self.stddev, self.lowerbound, self.upperbound)
+        self.calculate_p()
 
     def stddev_changed(self, text):
         if not text:
@@ -89,7 +114,7 @@ class NormalCDF(QWidget):
         else:
             self.stddev = text
         
-        self.calculate_p(self.mean, self.stddev, self.lowerbound, self.upperbound)
+        self.calculate_p()
 
     def lowerbound_changed(self, text):
         if not text:
@@ -97,7 +122,7 @@ class NormalCDF(QWidget):
         else:
             self.lowerbound = text
 
-        self.calculate_p(self.mean, self.stddev, self.lowerbound, self.upperbound)
+        self.calculate_p()
     
     def upperbound_changed(self, text):
         if not text:
@@ -105,20 +130,20 @@ class NormalCDF(QWidget):
         else:
             self.upperbound = text
     
-        self.calculate_p(self.mean, self.stddev, self.lowerbound, self.upperbound)
+        self.calculate_p()
     
 
     def set_p(self, value):
         self.p = value
         self.p_label.setText(f'p = {value}')
 
-    def calculate_p(self, mean, stddev, lower, upper):
+    def calculate_p(self):
         try:
             # fail if invalid input
-            mean = float(mean)
-            stddev = float(stddev)
-            lower = float(lower)
-            upper = float(upper)
+            mean = float(self.mean)
+            stddev = float(self.stddev)
+            lower = float(self.lowerbound)
+            upper = float(self.upperbound)
 
             lower_cdf = norm.cdf(lower, mean, stddev)
             upper_cdf = norm.cdf(upper, mean, stddev)
