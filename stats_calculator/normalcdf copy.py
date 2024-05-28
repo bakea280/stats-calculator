@@ -49,22 +49,23 @@ class NormalGraph(QWidget):
         super().__init__()
         
         self.graph = pg.PlotWidget()
-        self.graph.setAntialiasing(True)
-        self.graph.setBackground('w')
 
-        self.pen = pg.mkPen(width=2)
+        self.normal_graph = pg.PlotWidget()
+        self.pen = pg.mkPen(width=5)
+        mean, stddev = 0, 1
         self.resolution = 100
-
-        self.line = self.graph.plot(pen=self.pen)
+        # x = np.linspace(mean - stddev*3, mean + stddev*3, self.resolution)
+        # self.normal_graph.plot(x, norm.pdf(x), pen=self.pen)
         self.update_graph(data)
 
         layout = QVBoxLayout()
+        # layout.addWidget(self.normal_graph)
         layout.addWidget(self.graph)
         self.setLayout(layout)
 
     def update_graph(self, data):
-        x = np.linspace(data['mean'] - data['stddev']*3, data['mean'] + data['stddev']*3, self.resolution)
-        self.line.setData(x, norm.pdf(x, data['mean'], data['stddev']))
+        x = np.linspace(data.mean - data.stddev*3, data.mean + data.stddev*3, self.resolution)
+        self.graph.plot(x, norm.pdf(x), pen=self.pen)
 
 class NormalCDF(QWidget):
     def __init__(self):
@@ -77,19 +78,23 @@ class NormalCDF(QWidget):
             'upperbound': 1 * 10**10
         }
 
-        self.data = self.defaults.copy()
-        # self.data['p'] = 1.0
+        self.data = self.defaults
+        
+        self.mean = self.default_mean
+        self.stddev = self.default_stddev
+        self.lowerbound = self.default_lowerbound
+        self.upperbound = self.default_upperbound
+        self.p = 1.0
 
         equation_regex = '[0-9\Q.+-*/x^(), \E]*' 
 
-        mean_box = LabeledTextbox('mean (μ):', self.mean_changed, str(self.defaults['mean']), equation_regex)
-        stddev_box = LabeledTextbox('standard deviation (σ):', self.stddev_changed, str(self.defaults['stddev']), equation_regex)
+        mean_box = LabeledTextbox('mean (μ):', self.mean_changed, str(self.mean), equation_regex)
+        stddev_box = LabeledTextbox('standard deviation (σ):', self.stddev_changed, str(self.stddev), equation_regex)
         lowerbound_box = LabeledTextbox('lower bound:', self.lowerbound_changed, '-∞', equation_regex)
         upperbound_box = LabeledTextbox('upper bound:', self.upperbound_changed, '∞', equation_regex)
+        self.p_label = QLabel(f'p = {self.p}')
 
-        self.graph = NormalGraph(self.data)
-        self.p_label = QLabel()
-        self.calculate_p()
+        self.graph = NormalGraph(self)
 
         layout = QHBoxLayout()
 
@@ -106,59 +111,60 @@ class NormalCDF(QWidget):
         layout.addLayout(layoutL)
         layout.addLayout(layoutR)
         self.setLayout(layout)
-
-    def check_input(self, key, text):
-        if text == '':
-            self.data[key] = self.defaults[key]
-        else:
-            self.data[key] = text
     
     def mean_changed(self, text):
-        self.check_input('mean', text)
-
+        if not text:
+            self.mean = self.default_mean
+        else:
+            self.mean = text
+        
         self.calculate_p()
 
     def stddev_changed(self, text):
-        self.check_input('stddev', text)
+        if not text:
+            self.stddev = self.default_stddev
+        else:
+            self.stddev = text
         
         self.calculate_p()
 
     def lowerbound_changed(self, text):
-        self.check_input('lowerbound', text)
+        if not text:
+            self.lowerbound = self.default_lowerbound
+        else:
+            self.lowerbound = text
 
         self.calculate_p()
     
     def upperbound_changed(self, text):
-        self.check_input('upperbound', text)
+        if not text:
+            self.upperbound = self.default_upperbound
+        else:
+            self.upperbound = text
     
         self.calculate_p()
     
 
     def set_p(self, value):
-        self.data['p'] = value
+        self.p = value
         self.p_label.setText(f'p = {value}')
 
     def calculate_p(self):
-        invalid_inputs = []
-        data_new = {} # data as floats
-        for key, value in self.data.items():
-            if key == 'p':
-                continue
+        # try:
+            # fail if invalid input
+        mean = float(self.mean)
+        stddev = float(self.stddev)
+        lower = float(self.lowerbound)
+        upper = float(self.upperbound)
 
-            try:
-                data_new[key] = float(value)
-            except:
-                invalid_inputs.append(key)
-
-        if invalid_inputs:
-            print('these inputs are invalid: ' + ', '.join(invalid_inputs))
-            return
-
-        lower_cdf = norm.cdf(data_new['lowerbound'], data_new['mean'], data_new['stddev'])
-        upper_cdf = norm.cdf(data_new['upperbound'], data_new['mean'], data_new['stddev'])
+        lower_cdf = norm.cdf(lower, mean, stddev)
+        upper_cdf = norm.cdf(upper, mean, stddev)
         
         self.set_p(upper_cdf - lower_cdf)
-        self.graph.update_graph(data_new)
+        self.graph.update_graph(self)
+        # except Exception as e:
+        #     print('ERROR IN calculate_p', type(e), e)
+        #     self.set_p('?')
 
 if __name__ == '__main__': 
     app = QApplication(sys.argv)
