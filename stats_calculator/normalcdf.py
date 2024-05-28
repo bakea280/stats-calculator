@@ -20,6 +20,7 @@ from PyQt6.QtCore import QRegularExpression
 import numpy as np
 from scipy.stats import norm
 import pyqtgraph as pg
+pg.setConfigOptions(antialias=True)
 
 class LabeledTextbox(QWidget):
     def __init__(self, label_text, call_on_edit=None, placeholder_text=None, regex_filter=None):
@@ -49,13 +50,16 @@ class NormalGraph(QWidget):
         super().__init__()
         
         self.graph = pg.PlotWidget()
-        self.graph.setAntialiasing(True)
         self.graph.setBackground('w')
 
-        self.pen = pg.mkPen(width=2)
+        self.main_pen = pg.mkPen(width=2)
+        self.bounds_pen = pg.mkPen(width=2, color=(168,147,120))
         self.resolution = 100
 
-        self.line = self.graph.plot(pen=self.pen)
+        self.main_line = self.graph.plot(pen=self.main_pen)
+        self.bounds_line = self.graph.plot(pen=self.bounds_pen, fillLevel=0, brush=(235,217,193,200))
+        self.area_text = pg.TextItem(anchor=(0.5, 1), color=(0,0,0,255))
+        self.graph.addItem(self.area_text)
         self.update_graph(data)
 
         layout = QVBoxLayout()
@@ -63,8 +67,33 @@ class NormalGraph(QWidget):
         self.setLayout(layout)
 
     def update_graph(self, data):
-        x = np.linspace(data['mean'] - data['stddev']*3, data['mean'] + data['stddev']*3, self.resolution)
-        self.line.setData(x, norm.pdf(x, data['mean'], data['stddev']))
+        graph_start = data['mean'] - data['stddev']*3
+        graph_end = data['mean'] + data['stddev']*3
+        graph_length = graph_end - graph_start
+
+        # draw normal distribution curve
+        normal_x = np.linspace(graph_start, graph_end, self.resolution)
+        self.main_line.setData(normal_x, norm.pdf(normal_x, data['mean'], data['stddev']))
+
+        bounds_start = max(data['lowerbound'], graph_start)
+        bounds_end = min(data['upperbound'], graph_end)
+        bounds_length = bounds_end - bounds_start
+        bounds_resolution = int((bounds_length / graph_length) * self.resolution)
+        
+        # draw curve from lower bound to upper bound
+        bounds_x = np.linspace(bounds_start, bounds_end, bounds_resolution*2)
+        self.bounds_line.setData(bounds_x, norm.pdf(bounds_x, data['mean'], data['stddev']))
+
+        if not 'p' in data.keys():
+            print(data.keys())
+            return
+        
+        bounds_center = (bounds_start + bounds_end)/2
+
+        self.area_text.setText(f'A = {data["p"]:.2}')
+        self.area_text.setPos(bounds_center, norm.pdf(bounds_center, data['mean'], data['stddev'])/2)
+
+        
 
 class NormalCDF(QWidget):
     def __init__(self):
@@ -115,24 +144,16 @@ class NormalCDF(QWidget):
     
     def mean_changed(self, text):
         self.check_input('mean', text)
-
         self.calculate_p()
-
     def stddev_changed(self, text):
         self.check_input('stddev', text)
-        
         self.calculate_p()
-
     def lowerbound_changed(self, text):
         self.check_input('lowerbound', text)
-
         self.calculate_p()
-    
     def upperbound_changed(self, text):
         self.check_input('upperbound', text)
-    
         self.calculate_p()
-    
 
     def set_p(self, value):
         self.data['p'] = value
@@ -156,8 +177,9 @@ class NormalCDF(QWidget):
 
         lower_cdf = norm.cdf(data_new['lowerbound'], data_new['mean'], data_new['stddev'])
         upper_cdf = norm.cdf(data_new['upperbound'], data_new['mean'], data_new['stddev'])
+        data_new['p'] = upper_cdf - lower_cdf
         
-        self.set_p(upper_cdf - lower_cdf)
+        self.set_p(data_new['p'])
         self.graph.update_graph(data_new)
 
 if __name__ == '__main__': 
