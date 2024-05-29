@@ -28,6 +28,7 @@ class InverseNormal(QWidget):
         layoutL.addWidget(stddev_box)
         layoutL.addWidget(area_box)
         layoutL.addWidget(self.x_label)
+        layoutL.setAlignment(layoutL.alignment() | Qt.AlignmentFlag.AlignTop)
 
         layoutR = QVBoxLayout()
         layoutR.addWidget(self.graph)

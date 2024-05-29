@@ -30,6 +30,7 @@ class LabeledTextbox(QWidget):
 
         self.label = QLabel(label_text)
         self.textbox = QLineEdit()
+        self.label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
 
         if placeholder_text:
             self.textbox.setPlaceholderText(placeholder_text)

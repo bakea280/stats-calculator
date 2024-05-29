@@ -31,6 +31,7 @@ class NormalCDF(QWidget):
         layoutL.addWidget(lowerbound_box)
         layoutL.addWidget(upperbound_box)
         layoutL.addWidget(self.p_label)
+        layoutL.setAlignment(layoutL.alignment() | Qt.AlignmentFlag.AlignTop)
 
         layoutR = QVBoxLayout()
         layoutR.addWidget(self.graph)
