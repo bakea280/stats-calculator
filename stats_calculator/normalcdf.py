@@ -51,6 +51,7 @@ class NormalGraph(QWidget):
         
         self.graph = pg.PlotWidget()
         self.graph.setBackground('w')
+        self.viewbox = self.graph.getViewBox()
 
         self.main_pen = pg.mkPen(width=2)
         self.bounds_pen = pg.mkPen(width=2, color=(168,147,120))
@@ -58,7 +59,7 @@ class NormalGraph(QWidget):
 
         self.main_line = self.graph.plot(pen=self.main_pen)
         self.bounds_line = self.graph.plot(pen=self.bounds_pen, fillLevel=0, brush=(235,217,193,200))
-        self.area_text = pg.TextItem(anchor=(0.5, 1), color=(0,0,0,255))
+        self.area_text = pg.TextItem(anchor=(0.5, 0.8), color=(0,0,0,255), ensureInBounds=True)
         self.graph.addItem(self.area_text)
         self.update_graph(data)
 
@@ -73,25 +74,46 @@ class NormalGraph(QWidget):
 
         # draw normal distribution curve
         normal_x = np.linspace(graph_start, graph_end, self.resolution)
-        self.main_line.setData(normal_x, norm.pdf(normal_x, data['mean'], data['stddev']))
+        normal_y = norm.pdf(normal_x, data['mean'], data['stddev'])
+        self.main_line.setData(normal_x, normal_y)
 
-        bounds_start = max(data['lowerbound'], graph_start)
-        bounds_end = min(data['upperbound'], graph_end)
+        bounds_start = np.clip(data['lowerbound'], graph_start, graph_end)
+        bounds_end = np.clip(data['upperbound'], graph_start, graph_end)
         bounds_length = bounds_end - bounds_start
-        bounds_resolution = int((bounds_length / graph_length) * self.resolution)
+        bounds_resolution = max(int((bounds_length / graph_length) * self.resolution), 0)
         
         # draw curve from lower bound to upper bound
         bounds_x = np.linspace(bounds_start, bounds_end, bounds_resolution*2)
-        self.bounds_line.setData(bounds_x, norm.pdf(bounds_x, data['mean'], data['stddev']))
-
-        if not 'p' in data.keys():
-            print(data.keys())
-            return
+        bounds_y = norm.pdf(bounds_x, data['mean'], data['stddev'])
+        self.bounds_line.setData(bounds_x, bounds_y)
         
+        graph_center = (graph_start + graph_end)/2
         bounds_center = (bounds_start + bounds_end)/2
 
-        self.area_text.setText(f'A = {data["p"]:.2}')
+        # draw 'A = ...' text
+        self.area_text.setText(f'A ≈ {data["p"]:.2}')
         self.area_text.setPos(bounds_center, norm.pdf(bounds_center, data['mean'], data['stddev'])/2)
+        if bounds_center > graph_center:
+            self.area_text.setAnchor((1, 0.8))
+        elif bounds_center < graph_center:
+            self.area_text.setAnchor((0, 0.8))
+        else:
+            self.area_text.setAnchor((0.5, 0.8))
+
+        graph_max = normal_y.max()
+        graph_view_max = graph_max + graph_max * 0.01
+
+        # set viewbox limits
+        self.viewbox.setLimits(
+            xMin = graph_start,
+            xMax = graph_end,
+            yMin = 0,
+            yMax = graph_view_max,
+
+            maxXRange = graph_length,
+            minYRange = graph_view_max,
+            maxYRange = graph_view_max
+        )
 
         
 
@@ -103,11 +125,11 @@ class NormalCDF(QWidget):
             'mean': 0,
             'stddev': 1,
             'lowerbound': -1 * 10**10,
-            'upperbound': 1 * 10**10
+            'upperbound': 1 * 10**10,
+            'p': 1.0
         }
 
         self.data = self.defaults.copy()
-        # self.data['p'] = 1.0
 
         equation_regex = '[0-9\Q.+-*/x^(), \E]*' 
 
