@@ -88,12 +88,14 @@ class NormalCDF(QWidget):
         self.set_p(data_new['p'])
         self.graph.update_graph(data_new)
 
+
+
 class NormalGraph(QWidget):
     def __init__(self, data):
         super().__init__()
         
         self.graph = pg.PlotWidget()
-        self.graph.setBackground('w')
+        self.graph.setBackground(BACKGROUND_COLOR)
         self.viewbox = self.graph.getViewBox()
 
         self.main_pen = pg.mkPen(width=2)
@@ -102,13 +104,16 @@ class NormalGraph(QWidget):
 
         self.main_line = self.graph.plot(pen=self.main_pen)
         self.bounds_line = self.graph.plot(pen=self.bounds_pen, fillLevel=0, brush=(235,217,193,200))
-        self.area_text = pg.TextItem(anchor=(0.5, 0.8), color=(0,0,0,255), ensureInBounds=True)
+        self.area_text = pg.TextItem(anchor=(0.5,0.8), color=(0,0,0,255), ensureInBounds=True)
         self.graph.addItem(self.area_text)
+
         self.update_graph(data)
 
         layout = QVBoxLayout()
         layout.addWidget(self.graph)
         self.setLayout(layout)
+
+    
 
     def update_graph(self, data):
         graph_start = data['mean'] - data['stddev']*3
@@ -157,6 +162,8 @@ class NormalGraph(QWidget):
             minYRange = graph_view_max,
             maxYRange = graph_view_max
         )
+    
+    
 
 if __name__ == '__main__': 
     app = QApplication(sys.argv)

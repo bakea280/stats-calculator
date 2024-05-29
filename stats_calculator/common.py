@@ -14,7 +14,7 @@ from PyQt6.QtWidgets import (
     QSizePolicy,
     QLayout
 )
-from PyQt6.QtGui import QRegularExpressionValidator
+from PyQt6.QtGui import QRegularExpressionValidator, QIcon
 from PyQt6.QtCore import QRegularExpression
 
 import numpy as np
@@ -22,7 +22,9 @@ from scipy.stats import norm
 import pyqtgraph as pg
 pg.setConfigOptions(antialias=True)
 
-EQUATION_REGEX = '[0-9\Q.+-*/x^(), \E]*' 
+EQUATION_REGEX = '[0-9\Q.+-*/x^(), \E]*'
+
+BACKGROUND_COLOR = '#FFF6EA'
 
 class LabeledTextbox(QWidget):
     def __init__(self, label_text, call_on_edit=None, placeholder_text=None, regex_filter=None):

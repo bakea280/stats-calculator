@@ -86,7 +86,7 @@ class InvNormalGraph(QWidget):
         super().__init__()
 
         self.graph = pg.PlotWidget()
-        self.graph.setBackground('w')
+        self.graph.setBackground(BACKGROUND_COLOR)
         self.viewbox = self.graph.getViewBox()
 
         self.main_pen = pg.mkPen(width=2)
