@@ -17,6 +17,7 @@ from PyQt6.QtWidgets import (
 
 from layout_colorwidget import Color
 from normalcdf import NormalCDF
+from inversenormal import InverseNormal
 
 # class NormalCDFTab(QWidget):
 #     def __init__(self):
@@ -66,6 +67,7 @@ class MainWindow(QMainWindow):
 
         
         tabs.addTab(NormalCDF(), 'NormalCDF')
+        tabs.addTab(InverseNormal(), 'InverseNormal')
         
         for n, color in enumerate(["red", "green", "blue", "yellow"]):
             tabs.addTab(Color(color), color)
