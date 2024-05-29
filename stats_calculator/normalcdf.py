@@ -133,7 +133,7 @@ class NormalGraph(QWidget):
         bounds_center = (bounds_start + bounds_end)/2
 
         # draw 'A = ...' text
-        self.area_text.setText(f'A ≈ {data["p"]:.2}')
+        self.area_text.setText(f'A ≈ {data["p"]:.2f}')
         self.area_text.setPos(bounds_center, norm.pdf(bounds_center, data['mean'], data['stddev'])/2)
         if bounds_center > graph_center:
             self.area_text.setAnchor((1, 0.8))
